@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Text.Json;
+using System.IO;
 
 namespace cli_life
 {
@@ -25,6 +27,62 @@ namespace cli_life
             IsAlive = IsAliveNext;
         }
     }
+
+    public class BoardSettings
+    {
+        public int Width
+        { 
+            get; 
+            set;
+        }
+        public int Height
+        { 
+            get;
+            set;
+        }
+        public int CellSize
+        { 
+            get;
+            set;
+        }
+        public double LiveDensity
+        {
+            get;
+            set;
+        }
+
+        public BoardSettings(int width, int height, int cellSize, double liveDensity)
+        {
+            Width = width;
+            Height = height;
+            CellSize = cellSize;
+            LiveDensity = liveDensity;
+        }
+
+        public BoardSettings()
+        {
+            Width = 0;
+            Height = 0;
+            CellSize = 0;
+            LiveDensity = 0;
+        }
+
+        public BoardSettings(BoardSettings boardSettings)
+        {
+            Width = boardSettings.Width;
+            Height = boardSettings.Height;
+            CellSize = boardSettings.CellSize;
+            LiveDensity = boardSettings.LiveDensity;
+        }
+
+        public static void writeToFile(string filename, BoardSettings boardSettings)
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            string jsonString = JsonSerializer.Serialize(boardSettings, options);
+            File.WriteAllText(filename, jsonString);
+        }
+    }
+
     public class Board
     {
         public readonly Cell[,] Cells;
@@ -46,6 +104,10 @@ namespace cli_life
 
             ConnectNeighbors();
             Randomize(liveDensity);
+        }
+
+        public Board(BoardSettings boardSettings) : this(boardSettings.Width, boardSettings.Height, boardSettings.CellSize, boardSettings.LiveDensity)
+        {
         }
 
         readonly Random rand = new Random();
@@ -91,11 +153,15 @@ namespace cli_life
         static Board board;
         static private void Reset()
         {
-            board = new Board(
-                width: 50,
-                height: 20,
-                cellSize: 1,
-                liveDensity: 0.5);
+            string filename = "BoardSettings.json";
+            BoardSettings boardSettings = new BoardSettings(50, 20, 1, 0.5);
+
+            if (File.Exists(filename))
+                boardSettings = new BoardSettings(JsonSerializer.Deserialize<BoardSettings>(File.ReadAllText(filename)));
+            else
+                BoardSettings.writeToFile(filename, boardSettings);
+
+            board = new Board(boardSettings);
         }
         static void Render()
         {
@@ -124,7 +190,7 @@ namespace cli_life
                 Console.Clear();
                 Render();
                 board.Advance();
-                Thread.Sleep(1000);
+                Thread.Sleep(500);
             }
         }
     }
