@@ -14,6 +14,7 @@ namespace cli_life
         public bool IsAlive;
         public readonly List<Cell> neighbors = new List<Cell>();
         private bool IsAliveNext;
+
         public void DetermineNextLiveState()
         {
             int liveNeighbors = neighbors.Where(x => x.IsAlive).Count();
@@ -22,9 +23,20 @@ namespace cli_life
             else
                 IsAliveNext = liveNeighbors == 3;
         }
+
         public void Advance()
         {
             IsAlive = IsAliveNext;
+        }
+
+        public char CharRepresentation()
+        {
+            return IsAlive ? '1' : '0';
+        }
+
+        public void BoolRepresentation(char state)
+        {
+            IsAlive = state == '1' ? true : false;
         }
     }
 
@@ -110,6 +122,61 @@ namespace cli_life
         {
         }
 
+        public static void WriteToFile(string filename, Board board)
+        {
+            using (StreamWriter streamWriter = File.CreateText(filename))
+            {
+                int col = board.Columns;
+                int row = board.Rows;
+                int cellSize = board.CellSize;
+
+                streamWriter.WriteLine(col.ToString());
+                streamWriter.WriteLine(row.ToString());
+                streamWriter.WriteLine(cellSize.ToString());
+
+                for (int i = 0; i < row; i++)
+                {
+                    for (int j = 0; j < col; j++)
+                    {
+                        streamWriter.Write(board.Cells[j, i].CharRepresentation());
+                    }
+                    streamWriter.Write('\n');
+                }
+            }
+        }
+
+        public static Board ReadFromFile(string filename)
+        {
+            using (StreamReader streamReader = File.OpenText(filename))
+            {
+                string line;
+
+                line = streamReader.ReadLine();
+                int col = int.Parse(line);
+
+                line = streamReader.ReadLine();
+                int row = int.Parse(line);
+
+                line = streamReader.ReadLine();
+                int cellSize = int.Parse(line);
+
+                Board board = new Board(col, row, cellSize, 0);
+
+                for (int i = 0; i < row; i++)
+                {
+                    line = streamReader.ReadLine();
+
+                    for (int j = 0; j < col; j++)
+                    {
+                        char state = line[j];
+                        board.Cells[j, i].BoolRepresentation(state);
+                    }
+                }
+
+                return board;
+            }
+        }
+
         readonly Random rand = new Random();
         public void Randomize(double liveDensity)
         {
@@ -185,12 +252,15 @@ namespace cli_life
         static void Main(string[] args)
         {
             Reset();
-            while(true)
+            string filename = "board.txt";
+            board = Board.ReadFromFile(filename);
+            while (true)
             {
                 Console.Clear();
                 Render();
+                //Board.WriteToFile(filename, board);
                 board.Advance();
-                Thread.Sleep(500);
+                Thread.Sleep(15000);
             }
         }
     }
