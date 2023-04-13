@@ -252,15 +252,14 @@ namespace cli_life
         static void Main(string[] args)
         {
             Reset();
-            string filename = "board.txt";
+            string filename = "gun.txt";
             board = Board.ReadFromFile(filename);
             while (true)
             {
                 Console.Clear();
                 Render();
-                //Board.WriteToFile(filename, board);
                 board.Advance();
-                Thread.Sleep(15000);
+                Thread.Sleep(10);
             }
         }
     }
