@@ -135,13 +135,13 @@ namespace cli_life
         {
         }
 
-        public void WriteToFile(string filename)
+        public static void WriteToFile(string filename, Board board)
         {
             using (StreamWriter streamWriter = File.CreateText(filename))
             {
-                int col = Columns;
-                int row = Rows;
-                int cellSize = CellSize;
+                int col = board.Columns;
+                int row = board.Rows;
+                int cellSize = board.CellSize;
 
                 streamWriter.WriteLine(col.ToString());
                 streamWriter.WriteLine(row.ToString());
@@ -151,14 +151,14 @@ namespace cli_life
                 {
                     for (int j = 0; j < col; j++)
                     {
-                        streamWriter.Write(Cells[j, i].CharRepresentation());
+                        streamWriter.Write(board.Cells[j, i].CharRepresentation());
                     }
                     streamWriter.Write('\n');
                 }
             }
         }
 
-        public Board ReadFromFile(string filename)
+        public static Board ReadFromFile(string filename)
         {
             using (StreamReader streamReader = File.OpenText(filename))
             {
